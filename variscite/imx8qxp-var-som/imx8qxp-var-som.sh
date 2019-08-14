@@ -38,3 +38,4 @@ BOOTLOADER_OFFSET=32
 
 BOOT_DTB="fsl-imx8qxp-var-som.dtb"
 DEFAULT_BOOT_DTB="fsl-imx8qxp-var-som-sd.dtb"
+readonly ARCH_CPU="64BIT"

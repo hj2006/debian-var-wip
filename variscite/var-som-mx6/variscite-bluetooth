@@ -1,0 +1,52 @@
+#!/bin/sh -e
+### BEGIN INIT INFO
+# Provides:          variscite-bluetooth
+# Required-Start:    $all
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+DESC=variscite-bluetooth
+
+. /lib/lsb/init-functions
+
+WIFI_SDIO_ID_FILE=/sys/bus/mmc/devices/mmc2:0001/mmc2:0001:1/device
+WIFI_SDIO_ID_FILE_DART=/sys/bus/mmc/devices/mmc0:0001/mmc0:0001:1/device
+
+bt_found()
+{
+  # Use different ID file on DART-MX6
+  if grep -q DART /sys/devices/soc0/machine; then
+     WIFI_SDIO_ID_FILE=${WIFI_SDIO_ID_FILE_DART}
+  fi
+
+  if [ -f ${WIFI_SDIO_ID_FILE} ]; then
+    return 0
+  else
+    return 1
+  fi
+
+}
+
+#Check if BT/WIFI is up
+bt_found && {
+	log_daemon_msg "BT found"
+} || {
+	log_daemon_msg "No BT found"
+	exit 0
+};
+
+# Enable bluetooth chip
+echo 178 >/sys/class/gpio/export
+echo "out" > /sys/class/gpio/gpio178/direction
+echo 0 > /sys/class/gpio/gpio178/value
+sleep 1
+echo 1 > /sys/class/gpio/gpio178/value
+sleep 1;
+# Attach UART to bluetooth stack
+hciattach -t 10 -s 115200 /dev/ttymxc1 texas 3000000
+sleep 1;
+# Enable SCO over HCI
+hcitool cmd 0x3f 0x210 0x01 0x00 0x00 0xff
+
+exit 0

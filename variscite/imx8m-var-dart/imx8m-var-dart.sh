@@ -67,3 +67,4 @@ TEE_LOAD_ADDR=0xfe000000
 ATF_LOAD_ADDR=0x00910000
 UBOOT_DTB="fsl-imx8mq-var-dart.dtb"
 IMX_BOOT_TOOL_BL_BIN="bl31-imx8mq.bin"
+readonly ARCH_CPU="64BIT"
