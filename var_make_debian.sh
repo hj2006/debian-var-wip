@@ -800,9 +800,6 @@ protected_install dosfstools
 # fix config for sshd (permit root login)
 sed -i -e 's/#PermitRootLogin.*/PermitRootLogin\tyes/g' /etc/ssh/sshd_config
 
-# enable graphical desktop
-protected_install xfce4
-protected_install xfce4-goodies
 
 # sound mixer & volume
 # xfce-mixer is not part of Stretch since the stable versionit depends on
@@ -813,7 +810,7 @@ protected_install xfce4-goodies
 #protected_install xfce4-volumed
 
 # network manager
-protected_install network-manager-gnome
+#protected_install network-manager-gnome
 
 # net-tools (ifconfig, etc.)
 protected_install net-tools
@@ -854,6 +851,9 @@ protected_install udhcpd
 
 # can support
 protected_install can-utils
+
+# enable graphical desktop
+protected_install xfce4
 
 # delete unused packages ##
 apt-get -y remove xserver-xorg-video-ati
@@ -1237,7 +1237,8 @@ function make_uboot() {
 	cp ${G_UBOOT_NAME_FOR_EMMC} ${2}/${G_UBOOT_NAME_FOR_EMMC}
 
 	cp ${1}/tools/env/fw_printenv ${2}
-	elif [ "${MACHINE}" = "var-som-mx6" ]; then
+	elif [ "${MACHINE}" = "var-som-mx6" ] ||
+		[ "${MACHINE}" = "imx6ul-var-dart" ]; then
 	
 	# copy images
 	cp ${1}/u-boot.img  ${2}/${G_UBOOT_NAME_FOR_EMMC}
@@ -1531,7 +1532,7 @@ EOF
 # make sdcard for device
 # $1 -- block device
 # $2 -- output images dir
-function make_sdcard_mx6() {
+function make_sdcard_mx6_mx6ul_mx7() {
 	readonly local LPARAM_BLOCK_DEVICE=${1}
 	readonly local LPARAM_OUTPUT_DIR=${2}
 	readonly local P1_MOUNT_DIR="${G_TMP_DIR}/p1"
@@ -1582,7 +1583,7 @@ function make_sdcard_mx6() {
 	{
 		pr_info "Flashing \"BOOT-VARSOM\" partition"
 		cp ${LPARAM_OUTPUT_DIR}/*.dtb	${P1_MOUNT_DIR}/
-		cp ${LPARAM_OUTPUT_DIR}/uImage	${P1_MOUNT_DIR}/uImage
+		cp ${LPARAM_OUTPUT_DIR}/${BUILD_IMAGE_TYPE}	${P1_MOUNT_DIR}/${BUILD_IMAGE_TYPE}
 		sync
 
 		pr_info "Flashing \"rootfs\" partition"
@@ -1594,7 +1595,10 @@ function make_sdcard_mx6() {
 		mkdir -p ${P2_MOUNT_DIR}/${DEBIAN_IMAGES_TO_ROOTFS_POINT}
 
 		pr_info "Copying Debian images to /${DEBIAN_IMAGES_TO_ROOTFS_POINT}"
-		cp ${LPARAM_OUTPUT_DIR}/uImage 						${P2_MOUNT_DIR}/${DEBIAN_IMAGES_TO_ROOTFS_POINT}/
+		cp ${LPARAM_OUTPUT_DIR}/${BUILD_IMAGE_TYPE} 						${P2_MOUNT_DIR}/${DEBIAN_IMAGES_TO_ROOTFS_POINT}/
+		if [ "${MACHINE}" = "imx6ul-var-dart" ]; then
+			cp ${LPARAM_OUTPUT_DIR}/rootfs.ubi.img ${P2_MOUNT_DIR}/${DEBIAN_IMAGES_TO_ROOTFS_POINT}/
+		fi
 		cp ${LPARAM_OUTPUT_DIR}/${DEF_ROOTFS_TARBAR_NAME}	${P2_MOUNT_DIR}/${DEBIAN_IMAGES_TO_ROOTFS_POINT}/${DEF_ROOTFS_TARBAR_NAME}
 
 		cp ${LPARAM_OUTPUT_DIR}/*.dtb						${P2_MOUNT_DIR}/${DEBIAN_IMAGES_TO_ROOTFS_POINT}/
@@ -1613,8 +1617,12 @@ function make_sdcard_mx6() {
 	function copy_scripts
 	{
 		pr_info "Copying scripts to /${DEBIAN_IMAGES_TO_ROOTFS_POINT}"
-		cp ${G_VARISCITE_PATH}/debian-emmc.sh	${P2_MOUNT_DIR}/usr/sbin/
-		cp ${G_VARISCITE_PATH}/debian-install.sh ${P2_MOUNT_DIR}/usr/sbin/
+		cp ${G_VARISCITE_PATH}/${MACHINE}/debian-emmc.sh	${P2_MOUNT_DIR}/usr/sbin/
+		if [ "${MACHINE}" = "imx6ul-var-dart" ]; then
+			cp ${G_VARISCITE_PATH}/${MACHINE}/debian-nand.sh	${P2_MOUNT_DIR}/usr/sbin/
+		else
+			cp ${G_VARISCITE_PATH}/${MACHINE}/debian-install.sh ${P2_MOUNT_DIR}/usr/sbin/
+		fi
 	}
 
 	function ceildiv
@@ -1865,7 +1873,8 @@ function cmd_make_deploy() {
 function cmd_make_rootfs() {
 	make_prepare;
 
-	if [ "${MACHINE}" = "var-som-mx6" ]; then
+	if [ "${MACHINE}" = "var-som-mx6" ] ||
+		[ "${MACHINE}" = "imx6ul-var-dart" ]; then
 	## make debian rootfs for mx6
 	cd ${G_ROOTFS_DIR}
 	make_debian_rootfs_x11_common ${G_ROOTFS_DIR} || {
@@ -1972,8 +1981,9 @@ function cmd_make_rfs_tar() {
 }
 
 function cmd_make_sdcard() {
-	if [ "${MACHINE}" = "var-som-mx6" ]; then
-		make_sdcard_mx6 ${PARAM_BLOCK_DEVICE} ${PARAM_OUTPUT_DIR} || {
+	if [ "${MACHINE}" = "var-som-mx6" ] ||
+		[ "${MACHINE}" = "imx6ul-var-dart" ]; then
+		make_sdcard_mx6_mx6ul_mx7 ${PARAM_BLOCK_DEVICE} ${PARAM_OUTPUT_DIR} || {
 			pr_error "Failed #$? in function make_sdcard"
 			return 1;
 		};
