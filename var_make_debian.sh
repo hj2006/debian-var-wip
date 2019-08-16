@@ -69,7 +69,7 @@ function usage() {
 	echo " and create booted sdcard"
 	echo ""
 	echo "Usage:"
-	echo " MACHINE=<imx8m-var-dart|imx8mm-var-dart|imx8qxp-var-som|imx6ul-var-dart|var-som-mx6> ./${SCRIPT_NAME} options"
+	echo " MACHINE=<imx8m-var-dart|imx8mm-var-dart|imx8qxp-var-som|imx6ul-var-dart|var-som-mx6|var-som-mx7> ./${SCRIPT_NAME} options"
 	echo ""
 	echo "Options:"
 	echo "  -h|--help   -- print this help"
@@ -815,6 +815,13 @@ sed -i -e 's/#PermitRootLogin.*/PermitRootLogin\tyes/g' /etc/ssh/sshd_config
 # net-tools (ifconfig, etc.)
 protected_install net-tools
 
+# enable graphical desktop
+protected_install xorg
+
+# enable graphical desktop
+protected_install xfce4
+protected_install xfce4-goodies
+
 ## fix lightdm config (added autologin x_user) ##
 sed -i -e 's/\#autologin-user=/autologin-user=x_user/g' /etc/lightdm/lightdm.conf
 sed -i -e 's/\#autologin-user-timeout=0/autologin-user-timeout=0/g' /etc/lightdm/lightdm.conf
@@ -852,8 +859,6 @@ protected_install udhcpd
 # can support
 protected_install can-utils
 
-# enable graphical desktop
-protected_install xfce4
 
 # delete unused packages ##
 apt-get -y remove xserver-xorg-video-ati
@@ -1238,7 +1243,8 @@ function make_uboot() {
 
 	cp ${1}/tools/env/fw_printenv ${2}
 	elif [ "${MACHINE}" = "var-som-mx6" ] ||
-		[ "${MACHINE}" = "imx6ul-var-dart" ]; then
+		[ "${MACHINE}" = "imx6ul-var-dart" ] ||
+		[ "${MACHINE}" = "var-som-mx7" ]; then
 	
 	# copy images
 	cp ${1}/u-boot.img  ${2}/${G_UBOOT_NAME_FOR_EMMC}
@@ -1596,7 +1602,8 @@ function make_sdcard_mx6_mx6ul_mx7() {
 
 		pr_info "Copying Debian images to /${DEBIAN_IMAGES_TO_ROOTFS_POINT}"
 		cp ${LPARAM_OUTPUT_DIR}/${BUILD_IMAGE_TYPE} 						${P2_MOUNT_DIR}/${DEBIAN_IMAGES_TO_ROOTFS_POINT}/
-		if [ "${MACHINE}" = "imx6ul-var-dart" ]; then
+		if [ "${MACHINE}" = "imx6ul-var-dart" ] ||
+		[ "${MACHINE}" = "var-som-mx7" ]; then
 			cp ${LPARAM_OUTPUT_DIR}/rootfs.ubi.img ${P2_MOUNT_DIR}/${DEBIAN_IMAGES_TO_ROOTFS_POINT}/
 		fi
 		cp ${LPARAM_OUTPUT_DIR}/${DEF_ROOTFS_TARBAR_NAME}	${P2_MOUNT_DIR}/${DEBIAN_IMAGES_TO_ROOTFS_POINT}/${DEF_ROOTFS_TARBAR_NAME}
@@ -1618,7 +1625,8 @@ function make_sdcard_mx6_mx6ul_mx7() {
 	{
 		pr_info "Copying scripts to /${DEBIAN_IMAGES_TO_ROOTFS_POINT}"
 		cp ${G_VARISCITE_PATH}/${MACHINE}/debian-emmc.sh	${P2_MOUNT_DIR}/usr/sbin/
-		if [ "${MACHINE}" = "imx6ul-var-dart" ]; then
+		if [ "${MACHINE}" = "imx6ul-var-dart" ] ||
+		[ "${MACHINE}" = "var-som-mx7" ]; then
 			cp ${G_VARISCITE_PATH}/${MACHINE}/debian-nand.sh	${P2_MOUNT_DIR}/usr/sbin/
 		else
 			cp ${G_VARISCITE_PATH}/${MACHINE}/debian-install.sh ${P2_MOUNT_DIR}/usr/sbin/
@@ -1859,7 +1867,8 @@ function cmd_make_deploy() {
 		get_git_src ${G_IMX_GSTREAMER_GIT} ${G_IMX_GSTREAMER_GIT_BRANCH} ${G_IMX_GSTREAMER_SRC_DIR} ${G_IMX_GSTREAMER_GIT_SRCREV}
 	};
 	fi
-	if [ "${MACHINE}" = "imx6ul-var-dart" ]; then
+	if [ "${MACHINE}" = "imx6ul-var-dart" ] ||
+		[ "${MACHINE}" = "var-som-mx7" ]; then
 	# get linux-frimwrae source repository
 	(( `ls ${G_IMX_SDMA_FW_SRC_DIR}  2>/dev/null | wc -l` == 0 )) && {
 		pr_info "Get Linux-Firmware";
@@ -1874,7 +1883,8 @@ function cmd_make_rootfs() {
 	make_prepare;
 
 	if [ "${MACHINE}" = "var-som-mx6" ] ||
-		[ "${MACHINE}" = "imx6ul-var-dart" ]; then
+	   [ "${MACHINE}" = "imx6ul-var-dart" ] ||
+		[ "${MACHINE}" = "var-som-mx7" ]; then
 	## make debian rootfs for mx6
 	cd ${G_ROOTFS_DIR}
 	make_debian_rootfs_x11_common ${G_ROOTFS_DIR} || {
@@ -1906,7 +1916,8 @@ function cmd_make_rootfs() {
 		return 4;
 	}
 
-	if [ "${MACHINE}" = "imx6ul-var-dart" ]; then
+	if [ "${MACHINE}" = "imx6ul-var-dart" ] ||
+		[ "${MACHINE}" = "var-som-mx7" ]; then
 		## pack to ubi
 		make_ubi ${G_ROOTFS_DIR} ${G_TMP_DIR} ${PARAM_OUTPUT_DIR} ${G_UBI_FILE_NAME}  || {
 			pr_error "Failed #$? in function make_ubi"
@@ -1982,7 +1993,8 @@ function cmd_make_rfs_tar() {
 
 function cmd_make_sdcard() {
 	if [ "${MACHINE}" = "var-som-mx6" ] ||
-		[ "${MACHINE}" = "imx6ul-var-dart" ]; then
+		[ "${MACHINE}" = "imx6ul-var-dart" ] ||
+		[ "${MACHINE}" = "var-som-mx7" ]; then
 		make_sdcard_mx6_mx6ul_mx7 ${PARAM_BLOCK_DEVICE} ${PARAM_OUTPUT_DIR} || {
 			pr_error "Failed #$? in function make_sdcard"
 			return 1;
