@@ -2,7 +2,7 @@
 readonly G_LINUX_KERNEL_SRC_DIR="${DEF_SRC_DIR}/kernel"
 readonly G_LINUX_KERNEL_GIT="https://github.com/varigit/linux-imx.git"
 readonly G_LINUX_KERNEL_BRANCH="imx_4.14.78_1.0.0_ga_var01"
-readonly G_LINUX_KERNEL_REV="aecdf947c96b59d24bfacbd79a86c35e7c3f2555"
+readonly G_LINUX_KERNEL_REV="35148c96ae3be19f2732adb21d271bba39849414"
 readonly G_LINUX_KERNEL_DEF_CONFIG='imx_v7_var_defconfig'
 G_LINUX_DTB=" \
 	imx7d-var-som-emmc.dtb \
@@ -15,7 +15,7 @@ G_LINUX_DTB=" \
 readonly G_UBOOT_SRC_DIR="${DEF_SRC_DIR}/uboot"
 readonly G_UBOOT_GIT="https://github.com/varigit/uboot-imx.git"
 readonly G_UBOOT_BRANCH="imx_v2018.03_4.14.78_1.0.0_ga_var01"
-readonly G_UBOOT_REV="9879e5cb11114ff6a9558ca283e9566034446dd6"
+readonly G_UBOOT_REV="ddc95a6e5b319d6a649a81a5fc5a26ca3c117659"
 readonly G_UBOOT_DEF_CONFIG_MMC='mx7dvar_som_defconfig'
 readonly G_UBOOT_DEF_CONFIG_NAND='mx7dvar_som_nand_defconfig'
 readonly G_UBOOT_NAME_FOR_EMMC='u-boot.img.mmc'

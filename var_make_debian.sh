@@ -815,12 +815,22 @@ sed -i -e 's/#PermitRootLogin.*/PermitRootLogin\tyes/g' /etc/ssh/sshd_config
 # net-tools (ifconfig, etc.)
 protected_install net-tools
 
-# enable graphical desktop
-protected_install xorg
+protected_install udisk2
+protected_install gvfs
+
+protected_install gvfs-daemons
+
 
 # enable graphical desktop
+protected_install xorg
 protected_install xfce4
 protected_install xfce4-goodies
+
+#network manager
+protected_install network-manager-gnome
+
+# net-tools (ifconfig, etc.)
+protected_install net-tools
 
 ## fix lightdm config (added autologin x_user) ##
 sed -i -e 's/\#autologin-user=/autologin-user=x_user/g' /etc/lightdm/lightdm.conf
@@ -839,6 +849,8 @@ protected_install usbutils
 # added net tools
 protected_install iperf
 
+protected_install rng-tools
+
 #media
 protected_install audacious
 # protected_install parole
@@ -851,6 +863,7 @@ protected_install bluetooth
 protected_install bluez-obexd
 protected_install bluez-tools
 protected_install blueman
+protected_install gconf2
 
 # wifi support packages
 protected_install hostapd
@@ -1000,7 +1013,9 @@ rm -f cleanup
 	fi
 
 	rm ${ROOTFS_BASE}/usr/bin/qemu-arm-static
-	rm ${ROOTFS_BASE}/chroot_script*
+	if [ "${MACHINE}" = "var-som-mx6" ]; then
+		rm ${ROOTFS_BASE}/chroot_script*
+	fi
 	rm -rf ${ROOTFS_BASE}/usr/local/src/*
 
 	return 0;
