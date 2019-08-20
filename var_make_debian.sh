@@ -928,6 +928,7 @@ rm -f user-stage
 };
 
 ## fourth-stage ##
+	install_wifi_service
 	install_bt_brcm
 ## binaries rootfs patching ##
 	install -m 0644 ${G_VARISCITE_PATH}/${MACHINE}/issue ${ROOTFS_BASE}/etc/
@@ -1733,6 +1734,15 @@ EOF
 	return 0;
 }
 
+
+function make_imx_sdma_fw() {
+	pr_info "Install imx sdma firmware"
+	install -d ${2}/lib/firmware/imx/sdma
+	install -m 0644 ${1}/imx/sdma/sdma-imx6q.bin ${2}/lib/firmware/imx/sdma
+	install -m 0644 ${1}/LICENSE.sdma_firmware ${2}/lib/firmware/
+	return 0;
+}
+
 # make firmware for wl bcm module
 # $1 -- bcm git directory
 # $2 -- rootfs output dir
@@ -1747,6 +1757,16 @@ function make_bcm_fw() {
 	install -m 0644 ${1}/LICENSE ${2}/lib/firmware/brcm/
 
 	return 0;
+}
+
+function install_wifi_service() {
+### install variscite-wifi service
+	install -d -m 0755 ${ROOTFS_BASE}/etc/wifi
+	install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/variscite-wifi ${ROOTFS_BASE}/etc/wifi
+	install -m 0644 ${G_VARISCITE_PATH}/${MACHINE}/variscite-wifi.service ${ROOTFS_BASE}/lib/systemd/system
+	install -m 0644 ${G_VARISCITE_PATH}/${MACHINE}/brcmfmac.conf ${ROOTFS_BASE}/etc/modprobe.d
+	ln -s /lib/systemd/system/variscite-wifi.service \
+		${ROOTFS_BASE}/etc/systemd/system/multi-user.target.wants/variscite-wifi.service
 }
 
 function install_bt_brcm() {
@@ -1907,6 +1927,11 @@ function cmd_make_rootfs() {
 		cd -;
 		return 1;
 	}
+	## make imx sdma firmware
+	make_imx_sdma_fw ${G_IMX_SDMA_FW_SRC_DIR} ${G_ROOTFS_DIR} || {
+		pr_error "Failed #$? in function make_tarbar"
+		return 4;
+	};
 	cd -
 	else 	
 	## make debian rootfs
@@ -1917,6 +1942,7 @@ function cmd_make_rootfs() {
 		return 1;
 	}
 	cd -
+
 	fi
 	if [ ! -z "${G_BCM_FW_GIT}" ]; then
 	## make bcm firmwares
@@ -2035,6 +2061,16 @@ function cmd_make_bcmfw() {
 	return 0;
 }
 
+function cmd_make_firmware() {
+	make_prepare
+
+	make_imx_sdma_fw ${G_IMX_SDMA_FW_SRC_DIR} ${G_ROOTFS_DIR} || {
+		pr_error "Failed #$? in function make_tarbar"
+		return 4;
+	};
+	return 0;
+}
+
 function cmd_make_clean() {
 
 	## clean kernel, dtb, modules
@@ -2098,6 +2134,11 @@ case $PARAM_CMD in
 		;;
 	bcmfw )
 		cmd_make_bcmfw || {
+			V_RET_CODE=1;
+		};
+		;;
+	firmware )
+		cmd_make_firmware || {
 			V_RET_CODE=1;
 		};
 		;;
