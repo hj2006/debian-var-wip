@@ -219,42 +219,14 @@ protected_install local-apt-repository
 # update packages and install base
 apt-get update || apt-get upgrade
 
-# libc6 >=2.29 by Vivnate GPU drivers
-protected_install libc6/testing
-
-# maximize local repo priority
-echo "Package: *
-Pin: origin ""
-Pin-Priority: 1000
-" > etc/apt/preferences.d/local
-
-echo "Package: *
-Pin: release n=${DEB_RELEASE}
-Pin-Priority: 990
-" > etc/apt/preferences.d/buster
-# raise backports priority
-echo "Package: *
-Pin: release n=${DEB_RELEASE}-backports
-Pin-Priority: 500
-" > etc/apt/preferences.d/backports
-
-# raise backports priority
-echo "Package: *
-Pin: release n=testing
-Pin-Priority: 90
-" > etc/apt/preferences.d/testing
-
 # update packages and install base
 apt-get update
 
-protected_install libc6-dev/testing
+protected_install libc6-dev
 protected_install locales
 protected_install ntp
-protected_install openssh-sftp-server/testing
-protected_install runit-helper/testing
-protected_install ncurses-term/testing
-protected_install xauth/testing
-protected_install openssh-server/testing
+protected_install openssh-sftp-server
+protected_install openssh-server
 protected_install nfs-common
 
 # packages required when flashing emmc
