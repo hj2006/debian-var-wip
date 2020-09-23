@@ -64,6 +64,13 @@ function make_debian_weston_rootfs()
 		cp -r ${G_VARISCITE_PATH}/deb/${G_GPU_IMX_VIV_PACKAGE_DIR}/* \
 		${ROOTFS_BASE}/srv/local-apt-repository
 	fi
+
+	# Vivante GPU libgbm1 libraries
+	if [ ! -z "${G_GPU_IMX_VIV_GBM_DIR}" ]; then
+		cp -r ${G_VARISCITE_PATH}/deb/${G_GPU_IMX_VIV_GBM_DIR}/* \
+		${ROOTFS_BASE}/srv/local-apt-repository
+	fi
+
 	# Vivante GPU SDK Binaries
 	if [ ! -z "${G_GPU_IMX_VIV_SDK_PACKAGE_DIR}" ]; then
 		cp -r ${G_VARISCITE_PATH}/deb/${G_GPU_IMX_VIV_SDK_PACKAGE_DIR}/* \
@@ -256,6 +263,7 @@ fi
 
 # graphical packages
 protected_install libdrm-vivante1
+protected_install libgbm1
 protected_install imx-gpu-viv-core
 protected_install dpkg-dev
 protected_install imx-gpu-viv-wl
@@ -273,7 +281,6 @@ protected_install gstreamer1.0-alsa
 protected_install gstreamer1.0-plugins-bad
 protected_install gstreamer1.0-plugins-base
 protected_install gstreamer1.0-plugins-base-apps
-protected_install gstreamer1.0-plugins-ugly
 protected_install gstreamer1.0-plugins-good
 protected_install gstreamer1.0-tools
 protected_install ${IMXGSTPLG}
@@ -320,15 +327,10 @@ apt-get -y autoremove
 # GPU SDK
 if [ ! -z "${G_GPU_IMX_VIV_SDK_PACKAGE_DIR}" ]
 then
-       protected_install libc6-dev/testing
-       protected_install zlib1g-dev/testing
-       protected_install libtiff5/testing
-       protected_install libtiff-dev/testing
-       protected_install libassimp-dev/testing
-       protected_install libjpeg-dev/testing
-       protected_install libdevil-dev/testing
-       protected_install libwayland-egl-backend-dev/buster
-       protected_install glslang-tools/testing
+       protected_install libdevil-dev
+       protected_install libwayland-egl-backend-dev
+       protected_install glslang-tools
+       protected_install libassimp-dev
        protected_install imx-gpu-sdk-console
        protected_install imx-gpu-sdk-gles2
        protected_install imx-gpu-sdk-gles3
