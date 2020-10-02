@@ -1,0 +1,5 @@
+kernel (5.4.3) bullseye; urgency=medium
+
+  * Debianized Linux kernel headers
+
+ -- Harshesh Valera <harshesh.v@variscite.com>  Fri, 14 Jun 2019 12:35:48 -0800
