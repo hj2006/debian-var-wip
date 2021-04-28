@@ -155,6 +155,7 @@ function usage() {
 	echo "       all         -- build or rebuild kernel/bootloader/rootfs"
 	echo "       bootloader  -- build or rebuild bootloader (u-boot+SPL)"
 	echo "       kernel      -- build or rebuild linux kernel for this board"
+	echo "       kernelheaders -- build or rebuild Linux kernel headers"
 	echo "       modules     -- build or rebuild linux kernel modules and install in rootfs directory for this board"
 	echo "       rootfs      -- build or rebuild debian rootfs filesystem (includes: make debian apks, make and install kernel moduled,"
 	echo "                       make and install extern modules (wifi/bt), create rootfs.tar.gz)"
@@ -171,6 +172,8 @@ function usage() {
 	echo "  deploy and build:                 ./${SCRIPT_NAME} --cmd deploy && sudo ./${SCRIPT_NAME} --cmd all"
 	echo ""
 }
+
+source ${G_VARISCITE_PATH}/linux-headers_debian_src/create_kernel_tree_arm.sh
 
 ###### parse input arguments ##
 readonly SHORTOPTS="c:o:d:h"
@@ -337,6 +340,8 @@ function make_debian_rootfs() {
 	echo "user ALL=(root) /usr/bin/apt-get, /usr/bin/dpkg, /usr/bin/vi, /sbin/reboot" > ${ROOTFS_BASE}/etc/sudoers.d/user
 	chmod 0440 ${ROOTFS_BASE}/etc/sudoers.d/user
 
+	mkdir -p ${ROOTFS_BASE}/srv/local-apt-repository
+
 ## added mirror to source list
 echo "deb ${DEF_DEBIAN_MIRROR} ${DEB_RELEASE} main contrib non-free
 deb-src ${DEF_DEBIAN_MIRROR} ${DEB_RELEASE} main contrib non-free
@@ -412,6 +417,9 @@ function protected_install() {
 # update packages and install base
 apt-get update || apt-get update
 
+# local-apt-repository support
+protected_install local-apt-repository
+
 protected_install locales
 protected_install ntp
 protected_install openssh-server
@@ -480,6 +488,12 @@ protected_install udhcpd
 # can support
 protected_install can-utils
 
+# install dpkg-dev for dpkg-buildpackage
+protected_install debhelper
+protected_install execstack
+protected_install dh-python
+protected_install apt-src
+
 # delete unused packages ##
 apt-get -y remove xserver-xorg-video-ati
 apt-get -y remove xserver-xorg-video-radeon
@@ -519,6 +533,23 @@ EOF
 	install -m 0755 ${G_VARISCITE_PATH}/variscite-bluetooth ${ROOTFS_BASE}/etc/init.d/
 	LANG=C chroot ${ROOTFS_BASE} update-rc.d variscite-bluetooth defaults
 	LANG=C chroot ${ROOTFS_BASE} update-rc.d variscite-bluetooth enable 2 3 4 5
+
+        #Build kernel headers on the target
+	pr_info "rootfs: Building kernel-headers"
+	cp -ar ${ROOTFS_BASE}/../output/kernel-headers ${ROOTFS_BASE}/tmp/
+
+	echo "#!/bin/bash
+	# update packages
+	cd /tmp/kernel-headers
+	dpkg-buildpackage -b -j4 -us -uc
+	cp -ar /tmp/*.deb /srv/local-apt-repository/
+	dpkg-reconfigure local-apt-repository
+	rm -rf /var/cache/apt/*
+	rm -f header-stage
+	" > header-stage
+
+	chmod +x header-stage
+	chroot ${ROOTFS_BASE} /header-stage
 
 ## end packages stage ##
 [ "${G_USER_PACKAGES}" != "" ] && {
@@ -624,6 +655,7 @@ rm -f cleanup
 	fi
 
 	rm ${ROOTFS_BASE}/usr/bin/qemu-arm-static
+	rm -rf ${ROOTFS_BASE}/tmp/kernel-headers
 	rm ${ROOTFS_BASE}/chroot_script*
 	rm -rf ${ROOTFS_BASE}/usr/local/src/*
 
@@ -697,6 +729,22 @@ function make_kernel_modules() {
 
 	pr_info "Compiling kernel modules"
 	make ARCH=arm CROSS_COMPILE=${1} ${G_CROSS_COMPILER_JOPTION} -C ${3} modules
+}
+
+# make Linux kernel headers package
+# $1 -- cross compiler prefix
+# $2 -- Linux defconfig file
+# $3 -- Linux dirname
+# $4 -- out modules path
+function make_kernel_headers_package()
+{
+	pr_info "make kernel defconfig"
+	create_debian_kernel_headers_package ${3} \
+		${PARAM_OUTPUT_DIR}/kernel-headers ${G_VARISCITE_PATH}
+	pr_info "Installing kernel modules to ${4}"
+	make ARCH=arm  CROSS_COMPILE=${1} \
+		${G_CROSS_COMPILER_JOPTION} -C ${3} \
+		INSTALL_MOD_PATH=${4} modules_install
 }
 
 # install linux kernel modules
@@ -1191,6 +1239,15 @@ function cmd_make_kernel() {
 	return 0;
 }
 
+function cmd_make_kernel_header_deb()
+{
+	make_kernel_headers_package \
+		${G_CROSS_COMPILER_PATH}/${G_CROSS_COMPILER_PREFIX} \
+		${G_LINUX_KERNEL_DEF_CONFIG} ${G_LINUX_KERNEL_SRC_DIR} \
+		${PARAM_OUTPUT_DIR}/kernel-headers/kernel
+
+}
+
 function cmd_make_kmodules() {
 	make_prepare;
 
@@ -1293,6 +1350,11 @@ case $PARAM_CMD in
 			V_RET_CODE=1;
 		};
 		;;
+	kernelheaders )
+		cmd_make_kernel_header_deb || {
+			V_RET_CODE=1;
+		};
+		;;
 	sdcard )
 		cmd_make_sdcard || {
 			V_RET_CODE=1;
@@ -1307,6 +1369,7 @@ case $PARAM_CMD in
 		(cmd_make_uboot  &&
 		 cmd_make_kernel &&
 		 cmd_make_kmodules &&
+		 cmd_make_kernel_header_deb &&
 		 cmd_make_rootfs) || {
 			V_RET_CODE=1;
 		};
