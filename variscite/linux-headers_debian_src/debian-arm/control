@@ -29,7 +29,7 @@ Provides: linux-headers-4.19.0-2-common
 
 Package: linux-headers-5.4.3-armmp
 Architecture: armhf
-Depends: linux-headers-5.4.3-common (= ${source:Version}), linux-kbuild-5.4.3 (>= ${source:Version}), ${misc:Depends}, gcc-8
+Depends: linux-headers-5.4.3-common (= ${source:Version}), linux-kbuild-5.4.3 (>= ${source:Version}), ${misc:Depends}, gcc-6
 Description: Common header files for Linux 5.4.3
  This package provides the common kernel header files for Linux kernel
  version 5.4.3, generally used for building out-of-tree kernel modules.
@@ -41,8 +41,8 @@ Provides: linux-headers-4.19.0-2-armmp
 
 Package: linux-headers
 Architecture: armhf
-Depends: linux-headers-5.4.3-common (= ${source:Version}), linux-kbuild-5.4.3 (>= ${source:Version}), linux-headers-5.4.3-armmp (>= ${source:Version}), ${misc:Depends}, gcc-8
-Description: Header files for Linux ARM64 (meta-package)
+Depends: linux-headers-5.4.3-common (= ${source:Version}), linux-kbuild-5.4.3 (>= ${source:Version}), linux-headers-5.4.3-armmp (>= ${source:Version}), ${misc:Depends}, gcc-6
+Description: Header files for Linux 32-bit (meta-package)
  This package depends on the architecture-specific header files for the
  latest Linux kernel ARM64 configuration.
 Provides: linux-headers-armmp, linux-headers
