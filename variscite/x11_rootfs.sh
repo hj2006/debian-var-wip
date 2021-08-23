@@ -238,6 +238,9 @@ apt-get -y autoremove
 update-alternatives --set iptables /usr/sbin/iptables-legacy
 update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 
+#install usleep busybox applet
+ln -sf /bin/busybox /bin/usleep
+
 apt-get install -y --reinstall libgdk-pixbuf2.0-0
 
 # create users and set password
@@ -298,11 +301,7 @@ EOF
 	install -d ${ROOTFS_BASE}/etc/wifi
 	install -m 0644 ${G_VARISCITE_PATH}/x11_resources/blacklist.conf \
 		${ROOTFS_BASE}/etc/wifi
-	install -m 0644 ${G_VARISCITE_PATH}/${MACHINE}/variscite-wifi.conf \
-		${ROOTFS_BASE}/etc/wifi
-	install -m 0644 ${G_VARISCITE_PATH}/x11_resources/variscite-wifi-common.sh \
-		${ROOTFS_BASE}/etc/wifi
-	install -m 0755 ${G_VARISCITE_PATH}/x11_resources/variscite-wifi \
+	install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/variscite-wifi \
 		${ROOTFS_BASE}/etc/wifi
 	install -m 0644 ${G_VARISCITE_PATH}/x11_resources/variscite-wifi.service \
 		${ROOTFS_BASE}/lib/systemd/system
