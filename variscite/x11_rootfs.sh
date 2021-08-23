@@ -261,9 +261,7 @@ EOF
 	install -m 0755 ${G_VARISCITE_PATH}/x11_resources/brcm_patchram_plus \
 		${ROOTFS_BASE}/usr/bin
 	install -d ${ROOTFS_BASE}/etc/bluetooth
-	install -m 0644 ${G_VARISCITE_PATH}/${MACHINE}/variscite-bt.conf \
-		${ROOTFS_BASE}/etc/bluetooth
-	install -m 0755 ${G_VARISCITE_PATH}/x11_resources/variscite-bt \
+	install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/variscite-bt \
 		${ROOTFS_BASE}/etc/bluetooth
 	install -m 0644 ${G_VARISCITE_PATH}/x11_resources/variscite-bt.service \
 		${ROOTFS_BASE}/lib/systemd/system
