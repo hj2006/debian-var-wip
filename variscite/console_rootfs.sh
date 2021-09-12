@@ -384,23 +384,17 @@ EOF
 	rm -rf ${ROOTFS_BASE}/usr/lib/pm-utils/sleep.d/
 	rm -rf ${ROOTFS_BASE}/usr/lib/pm-utils/module.d/
 	rm -rf ${ROOTFS_BASE}/usr/lib/pm-utils/power.d/
-	if [ "${MACHINE}" = "imx6ul-var-dart" ] ||
-	   [ "${MACHINE}" = "var-som-mx7" ]; then
-		install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/wifi.sh \
+	install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/01-bt.sh \
+		${ROOTFS_BASE}/etc/pm/sleep.d/
+	install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/02-wifi.sh \
+		${ROOTFS_BASE}/etc/pm/sleep.d/
+	if [ -f ${G_VARISCITE_PATH}/${MACHINE}/03-eth.sh ]; then
+		install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/03-eth.sh \
 			${ROOTFS_BASE}/etc/pm/sleep.d/
-	else
-		install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/01-bt.sh \
+	fi
+	if [ -f ${G_VARISCITE_PATH}/${MACHINE}/04-usb.sh ]; then
+		install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/04-usb.sh \
 			${ROOTFS_BASE}/etc/pm/sleep.d/
-		install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/02-wifi.sh \
-			${ROOTFS_BASE}/etc/pm/sleep.d/
-		if [ -f ${G_VARISCITE_PATH}/${MACHINE}/03-eth.sh ]; then
-			install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/03-eth.sh \
-				${ROOTFS_BASE}/etc/pm/sleep.d/
-		fi
-		if [ -f ${G_VARISCITE_PATH}/${MACHINE}/04-usb.sh ]; then
-			install -m 0755 ${G_VARISCITE_PATH}/${MACHINE}/04-usb.sh \
-				${ROOTFS_BASE}/etc/pm/sleep.d/
-		fi
 	fi
 
 	if [ "${MACHINE}" != "imx6ul-var-dart" ] &&
